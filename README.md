@@ -19,3 +19,31 @@ path-to-binary/app-store-review-time-watcher app=123456789 version=1.0.1
 
 The project was created in a context of using [fastlane](https://github.com/fastlane/fastlane) as a deployment tool. So you could simply trigger a function right after `deliver`.
 
+The FastFile would look like this:
+
+```ruby
+def getItunesInformation(bundleId)
+    Spaceship::Tunes.login
+    return Spaceship::Tunes::Application.find(bundleId)
+end
+
+def startReviewWatcher(appId, version)
+    sh "../scripts/store-submission.sh app=#{appId} version=#{version}"
+end
+
+platform :ios do
+    lane :sub do
+        bundle_id = "your.bundle.id"
+        app = getItunesInformation(bundle_id)
+        startReviewWatcher(app.apple_id, app.edit_version.version)
+    end
+end
+```
+
+`store-submission.sh` 
+
+```bash
+#!/usr/bin/env bash
+
+nohup open /Applications/Background/app-store-review-time-watcher --args $1 $2 &
+```
